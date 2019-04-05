@@ -1,5 +1,9 @@
 # OWL-Scrape
 
+Automagically download all 14 live OWL streams (6 player POVs from both sides, map VOD, and spectator VOD) to disk for later viewing. Categorizes them for you.
+
+---
+
 This is a WIP for OWL Season 2 Stage 2.
 
 It currently works with no known bugs. Please open an issue if you find any, or would like additional features. I maintain this in my spare time.
