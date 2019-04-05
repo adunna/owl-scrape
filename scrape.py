@@ -132,12 +132,12 @@ class OWLScraper():
 
     # Stop record process
     def StopRecord(self):
-        try:
-            for proc in self.STREAMS:
+        for proc in self.STREAMS:
+            try:
                 proc.kill()
-            os.system("killall -9 streamlink")
-        except:
-            pass
+            except:
+                pass
+        self.STREAMS = []
 
     # Make directories for streams
     def MakeDirectories(self):
