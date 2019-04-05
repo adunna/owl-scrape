@@ -23,7 +23,7 @@ class OWLScraper():
         self.QUALITY = config.QUALITY
         self.MATCHES = []
         self.GAMES = []
-        self.PREV_MATCH_ID = 0
+        self.PREV_MAP_ID = -1
         self.CURRENT_MATCH = []
         self.STREAMS = []
         self.RUNNING = False
@@ -72,9 +72,8 @@ class OWLScraper():
 
                 # Found current game
                 if self.CURRENT_MATCH != []:
-                    if self.CURRENT_MATCH[0] != self.PREV_MATCH_ID:
-                        self.PREV_MATCH_ID = self.CURRENT_MATCH[0]
-                        self.RECORDING = True
+                    if self.CURRENT_MATCH[0] != self.PREV_MAP_ID:
+                        self.PREV_MAP_ID = self.CURRENT_MATCH[1]
                         self.Log("Recording game: #%s - %s vs. %s - Map %s" % (self.CURRENT_MATCH[0], self.CURRENT_MATCH[2], self.CURRENT_MATCH[3], self.CURRENT_MATCH[1]))
 
                         # Already recording, but map changed
@@ -87,6 +86,8 @@ class OWLScraper():
                         else:
                             self.MakeDirectories()
                             self.StartRecord()
+
+                        self.RECORDING = True
 
                 else:
 
