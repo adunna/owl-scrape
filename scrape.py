@@ -10,6 +10,7 @@ import json
 import time
 import subprocess
 import os
+import signal
 from itertools import chain
 from threading import Thread
 
@@ -132,6 +133,7 @@ class OWLScraper():
     def StopRecord(self):
         for proc in self.STREAMS:
             proc.kill()
+        os.system("killall -9 streamlink")
 
     # Make directories for streams
     def MakeDirectories(self):
