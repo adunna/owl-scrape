@@ -19,6 +19,7 @@ class OWLScraper():
         self.GAME_STATES = {"curr": "IN_PROGRESS", "future": "PENDING", "fin": "CONCLUDED"}
         self.CLIENT_ID = config.CLIENT_ID
         self.OAUTH_TOKEN = config.OAUTH_TOKEN
+        self.QUALITY = config.QUALITY
         self.MATCHES = []
         self.GAMES = []
         self.PREV_MATCH_ID = 0
@@ -108,7 +109,7 @@ class OWLScraper():
 
     # Start sub stream output with streamlink
     def SubStream(self, chan_name, file_name):
-        self.STREAMS.append(subprocess.Popen("exec streamlink --twitch-oauth-token %s twitch.tv/%s best -o matches/%s/%s_%s_vs_%s/map%s_%s.flv" % (self.OAUTH_TOKEN, chan_name, self.CURRENT_MATCH[5], self.CURRENT_MATCH[0], self.CURRENT_MATCH[2], self.CURRENT_MATCH[3], self.CURRENT_MATCH[1], file_name), stdout=subprocess.PIPE, shell=True))
+        self.STREAMS.append(subprocess.Popen("exec streamlink --twitch-oauth-token %s twitch.tv/%s %s -o matches/%s/%s_%s_vs_%s/map%s_%s.flv" % (self.OAUTH_TOKEN, chan_name, self.QUALITY, self.CURRENT_MATCH[5], self.CURRENT_MATCH[0], self.CURRENT_MATCH[2], self.CURRENT_MATCH[3], self.CURRENT_MATCH[1], file_name), stdout=subprocess.PIPE, shell=True))
 
     # Start record process
     def StartRecord(self):
