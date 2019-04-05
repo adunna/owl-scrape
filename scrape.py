@@ -74,6 +74,7 @@ class OWLScraper():
                 if self.CURRENT_MATCH != []:
                     if self.CURRENT_MATCH[0] != self.PREV_MATCH_ID:
                         self.PREV_MATCH_ID = self.CURRENT_MATCH[0]
+                        self.RECORDING = True
                         self.Log("Recording game: #%s - %s vs. %s - Map %s" % (self.CURRENT_MATCH[0], self.CURRENT_MATCH[2], self.CURRENT_MATCH[3], self.CURRENT_MATCH[1]))
 
                         # Already recording, but map changed
@@ -131,9 +132,12 @@ class OWLScraper():
 
     # Stop record process
     def StopRecord(self):
-        for proc in self.STREAMS:
-            proc.kill()
-        os.system("killall -9 streamlink")
+        try:
+            for proc in self.STREAMS:
+                proc.kill()
+            os.system("killall -9 streamlink")
+        except:
+            pass
 
     # Make directories for streams
     def MakeDirectories(self):
