@@ -1,3 +1,5 @@
+![](static/version1-1.png)
+
 # OWL-Scrape
 
 Automagically download all 14 live OWL streams (6 player POVs from both sides, map VOD, and spectator VOD) to disk for later viewing. Categorizes them for you.
