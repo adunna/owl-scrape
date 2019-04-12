@@ -1,0 +1,139 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>OWL-Scrape by MatrixOW</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='assets/css/main.css') }}" />
+  </head>
+  <body class="is-preload">
+
+    <div id="wrapper">
+
+      <header id="header" class="alt">
+        <h1>OWL-Scrape</h1>
+  <p>Version 1.1<br>by <a href="https://adunna.me/">Arun "Matrix" Dunna</a></p>
+      </header>
+
+      <div id="main">
+        <section id="intro" class="main">
+          <div class="spotlight">
+            <div class="content">
+              <header class="major">
+                <h2>Configuration</h2>
+              </header>
+        <form method="post" action="#">
+          <input type="hidden" name="formtype" value="config"/>
+    <div class="row gtr-uniform">
+      <div class="col-6 col-12-xsmall">
+        <label for="oauth-token">OAuth Token</label>
+        <input type="text" id="oauth-token" name="oauth-token" value="{{conf.oauth}}" placeholder="OAuth Token" /><br>
+        <button type="button" style="float:left;" class="button" onclick="window.open('https://api.twitch.tv/kraken/oauth2/authorize?response_type=token&client_id=pwkzresl8kj2rdj6g7bvxl9ys1wly3j&redirect_uri=https://streamlink.github.io/twitch_oauth.html&scope=user_read+user_subscriptions&force_verify=true', '_blank')">Get OAuth Token</button>
+      </div>
+      <div class="col-6 col-12-xsmall">
+        <label for="quality">Video Quality</label>
+        <select name="quality" id="quality">
+          <option value="best" {{conf.quality.one}}>1080p60</option>
+          <option value="720p" {{conf.quality.two}}>720p</option>
+          <option value="480p" {{conf.quality.three}}>480p</option>
+          <option value="360p" {{conf.quality.four}}>360p</option>
+          <option value="audio_only" {{conf.quality.five}}>Audio Only</option>
+        </select><br>
+        <input type="submit" value="Save Changes" class="button primary" style="float: right;"/>
+      </div>
+    </div>
+        </form>
+        <header class="major">
+          <h2>Scraper</h2>
+        </header>
+        <form method="post" action="#">
+          <input type="hidden" name="formtype" value="scraper"/>
+          <div class="row gtr-uniform">
+          <div class="col-6 col-6-xsmall">
+            <label>Scraper Control</label>
+            <input type="submit" class="button" name="start" value="Start"/>
+	    <input type="submit" class="button" name="stop" value="Stop"/><br><br>
+	    <input type="submit" class="button primary" name="save" value="Save Filters"/>
+          </div>
+          <div class="col-6 col-6-xsmall">
+            <label>Scraper Output</label>
+      <textarea id="output" cols="60" rows="6" readonly wrap="VIRTUAL"></textarea>
+          </div>
+          </div>
+<style>
+.container-div {
+text-align:left;
+overflow-y:scroll;
+width:100%;
+height:300px;
+}
+</style>
+<br>
+          <div class="row gtr-uniform">
+            <div class="col-3 col-12-xsmall">
+              <label>Maps</label>
+              <div class="container-div">
+                {%for mapx in maps%}
+                <input type="checkbox" name="m_{{mapx[0]}}" id="m_{{mapx[0]}}" {{mapx[1]}}/><label for=m_{{mapx[0]}}>{{mapx[0]}}</label><br>
+                {%endfor%}
+              </div>
+            </div>
+            <div class="col-3 col-12-xsmall">
+              <label>Roles</label>
+              <div class="container-div">
+                {%for role in roles%}
+                <input type="checkbox" name="r_{{role[0]}}" id="r_{{role[0]}}" {{role[1]}}/><label for=r_{{role[0]}}>{{role[0]}}</label><br>
+                {%endfor%}
+              </div>
+            </div>
+            <div class="col-3 col-12-xsmall">
+              <label>Teams</label>
+              <div class="container-div">
+                {%for team in teams%}
+                <input type="checkbox" name="t_{{team[0]}}" id="t_{{team[0]}}" {{team[1]}}/><label for=t_{{team[0]}}>{{team[0]}}</label><br>
+                {%endfor%}
+              </div>
+            </div>
+	    <div class="col-3 col-12-xsmall">
+		<label>Players</label>
+		<div class="container-div">
+			{%for player in players%}
+			<input type="checkbox" name="p_{{player[0]}}" id="p_{{player[0]}}" {{player[1]}}/><label for=p_{{player[0]}}>{{player[0]}}</label><br>
+			{%endfor%}
+		</div>
+	    </div>
+          </div>
+        </form>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Footer -->
+      <footer id="footer">
+        <section>
+          <h2>This is a work in progress.</h2>
+	  <p>Please submit any feedback as a GitHub issue.<br><br>This is developed in my spare time as a part of my suite of analyst tools. Keep an eye on <a href="https://statix.io">Statix</a>.</p>
+        </section>
+        <p class="copyright">&copy; Arun Dunna. Partial design credit to <a href="https://html5up.net">HTML5 UP</a>.</p>
+      </footer>
+
+    </div>
+    <script>
+  var output = document.getElementById("output");
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", "{{ url_for('log') }}");
+  xhr.send();
+  setInterval(function() {
+    output.textContent = xhr.responseText;
+  }, 1000);
+    </script>
+    <script src="{{ url_for('static', filename='assets/js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/jquery.scrollex.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/jquery.scrolly.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/browser.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/breakpoints.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/util.js') }}"></script>
+    <script src="{{ url_for('static', filename='assets/js/main.js') }}"></script>
+  </body>
+</html>
