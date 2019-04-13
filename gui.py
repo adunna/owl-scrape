@@ -36,15 +36,15 @@ class GUI():
         self.STOPSERVER = False
         self.MTHREAD = Thread(target=self.Run)
         self.MTHREAD.start()
-        self.WPROC = Process(target=self.MAIN.run)
+        self.WPROC = Thread(target=self.MAIN.run)
         self.WPROC.start()
 
     def Run(self):
         while not self.STOPSERVER:
             time.sleep(0.1)
         print("stop")
-        self.MAIN.terminate()
-        self.MAIN.join()
+        #self.MAIN.terminate()
+        #self.MAIN.join()
 
     def Setup(self):
         self.MAIN = Flask(__name__)
