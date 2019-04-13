@@ -13,6 +13,7 @@ import signal
 from itertools import chain
 from threading import Thread
 import configparser
+from sys import platform
 
 class OWLScraper():
 
@@ -190,7 +191,10 @@ class OWLScraper():
         # OUTDIR/map/date/team1_team2/type.flv
         outFile = "%s/%s/%s/%s_%s/%s.flv" % (self.OUT_DIR, self.CURRENT_MATCH[4], self.CURRENT_MATCH[5], self.CURRENT_MATCH[2], self.CURRENT_MATCH[3], file_name)
         self.STREAM_FILES.append(outFile)
-        self.STREAMS.append(subprocess.Popen("exec streamlink --twitch-oauth-token %s twitch.tv/%s %s -o %s" % (self.OAUTH_TOKEN, chan_name, self.QUALITY, outFile), stdout=subprocess.PIPE, shell=True))
+        if platform == "linux" or platform == "linux2" or platform == "darwin":
+            self.STREAMS.append(subprocess.Popen("exec streamlink --twitch-oauth-token %s twitch.tv/%s %s -o %s" % (self.OAUTH_TOKEN, chan_name, self.QUALITY, outFile), stdout=subprocess.PIPE, shell=True))
+        else:
+            self.STREAMS.append(subprocess.Popen("streamlink --twitch-oauth-token %s twitch.tv/%s %s -o %s" % (self.OAUTH_TOKEN, chan_name, self.QUALITY, outFile), stdout=subprocess.PIPE, shell=True))
 
     # Start record process
     def StartRecord(self):
@@ -227,15 +231,19 @@ class OWLScraper():
     def RunProcessStreams(self):
         copyStreams = self.STREAM_FILES
         self.STREAM_FILES = []
+        time.sleep(30)
         if self.PROCESS_STREAMS:
             for streamFile in copyStreams:
-                P = subprocess.Popen("ffmpeg -i %s -c:v libx264 -crf 22 -preset slow -c:a mp3 %s >/dev/null 2>&1" % (streamFile, streamFile[:-3] + "mp4"), stdout=subprocess.PIPE, shell=True)
-                while self.STOP_PROCESSING == False and P.poll() == None:
-                    time.sleep(0.1)
-                if self.STOP_PROCESSING:
-                    P.kill()
-                    return
-                os.remove(streamFile)
+                try:
+                    P = subprocess.Popen("ffmpeg -i %s -c:v libx264 -crf 22 -preset slow -c:a mp3 %s >/dev/null 2>&1" % (streamFile, streamFile[:-3] + "mp4"), stdout=subprocess.PIPE, shell=True)
+                    while self.STOP_PROCESSING == False and P.poll() == None:
+                        time.sleep(0.1)
+                    if self.STOP_PROCESSING:
+                        P.kill()
+                        return
+                    os.remove(streamFile)
+                except:
+                    pass
 
     # Make directories for streams
     def MakeDirectories(self):

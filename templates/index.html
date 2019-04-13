@@ -119,15 +119,6 @@ height:300px;
       </footer>
 
     </div>
-    <script>
-  var output = document.getElementById("output");
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", "{{ url_for('log') }}");
-  xhr.send();
-  setInterval(function() {
-    output.textContent = xhr.responseText;
-  }, 1000);
-    </script>
     <script src="{{ url_for('static', filename='assets/js/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='assets/js/jquery.scrollex.min.js') }}"></script>
     <script src="{{ url_for('static', filename='assets/js/jquery.scrolly.min.js') }}"></script>
@@ -135,5 +126,15 @@ height:300px;
     <script src="{{ url_for('static', filename='assets/js/breakpoints.min.js') }}"></script>
     <script src="{{ url_for('static', filename='assets/js/util.js') }}"></script>
     <script src="{{ url_for('static', filename='assets/js/main.js') }}"></script>
+	<script>
+	setInterval(function() {
+		$.ajax({
+			url: "{{ url_for('log') }}",
+			success: function (data) {
+				$("#output").val(data);
+			}
+		});
+	}, 2000);
+    </script>
   </body>
 </html>
