@@ -25,8 +25,8 @@ class OWLScraper():
         self.OAUTH_TOKEN = otoken
         self.QUALITY = qual
         self.OUT_DIR = "matches"
-        self.MOVE_DIR = None
-        self.PROCESS_STREAMS = True
+        self.MOVE_DIR = "processed"
+        self.PROCESS_STREAMS = False
 
         self.CLI = True
         self.WEBC = ""
@@ -37,7 +37,8 @@ class OWLScraper():
         self.PREV_MAP_ID = -1
         self.CURRENT_MATCH = []
         self.STREAMS = []
-        self.STREAM_FILES = []
+        self.STREAM_FILES = set()
+        self.PROCESSED = set()
         self.LOGGED_MON = False
         self.RUNNING = False
         self.RECORDING = False
@@ -61,6 +62,11 @@ class OWLScraper():
     def Setup(self):
         self.MAPS, self.TEAMS, self.PLAYERS, self.ROLES, self.MODES = self.GetLatestInfo()
         self.ReadFilters()
+        cfg = configparser.ConfigParser()
+        cfg.read("config.ini")
+        self.PROCESS_STREAMS = True if cfg["MAIN"]["post_process"] == "yes" else False
+        self.OUT_DIR = cfg["MAIN"]["out_dir"]
+        self.MOVE_DIR = cfg["MAIN"]["finished_dir"]
 
     # Update filters from configuration file
     def ReadFilters(self):
@@ -190,7 +196,7 @@ class OWLScraper():
     def SubStream(self, chan_name, file_name):
         # OUTDIR/map/date/team1_team2/type.flv
         outFile = "%s/%s/%s/%s_%s/%s.flv" % (self.OUT_DIR, self.CURRENT_MATCH[4], self.CURRENT_MATCH[5], self.CURRENT_MATCH[2], self.CURRENT_MATCH[3], file_name)
-        self.STREAM_FILES.append(outFile)
+        self.STREAM_FILES.add("%s/%s/%s_%s/%s.flv" % (self.CURRENT_MATCH[4], self.CURRENT_MATCH[5], self.CURRENT_MATCH[2], self.CURRENT_MATCH[3], file_name))
         if platform == "linux" or platform == "linux2" or platform == "darwin":
             self.STREAMS.append(subprocess.Popen("exec streamlink --twitch-oauth-token %s twitch.tv/%s %s -o %s" % (self.OAUTH_TOKEN, chan_name, self.QUALITY, outFile), stdout=subprocess.PIPE, shell=True))
         else:
@@ -225,38 +231,52 @@ class OWLScraper():
 
     # Process files after streams have ended
     def ProcessStreams(self):
-        self.PROCESS_THREAD = Thread(target=self.RunProcessStreams)
-        self.PROCESS_THREAD.start()
+        if self.PROCESS_THREAD is None:
+            self.PROCESS_THREAD = Thread(target=self.RunProcessStreams)
+            self.PROCESS_THREAD.start()
 
     def RunProcessStreams(self):
-        copyStreams = self.STREAM_FILES
-        self.STREAM_FILES = []
-        time.sleep(30)
-        if self.PROCESS_STREAMS:
-            for streamFile in copyStreams:
+        while self.PROCESS_STREAMS and self.STOP_PROCESSING == False:
+            toProcess = list(self.STREAM_FILES - self.PROCESSED)
+            if len(toProcess) > 0:
+                curr = toProcess[0]
+                time.sleep(30)
                 try:
-                    P = subprocess.Popen("ffmpeg -i %s -c:v libx264 -crf 22 -preset slow -c:a mp3 %s >/dev/null 2>&1" % (streamFile, streamFile[:-3] + "mp4"), stdout=subprocess.PIPE, shell=True)
+                    self.Log("Processing %s ..." % (curr,))
+                    P = subprocess.Popen("ffmpeg -i %s/%s -c:v libx264 -crf 22 -preset slow -c:a mp3 %s/%s >/dev/null 2>&1" % (self.OUT_DIR, curr, self.OUT_DIR, curr[:-3] + "mp4"), stdout=subprocess.PIPE, shell=True)
                     while self.STOP_PROCESSING == False and P.poll() == None:
-                        time.sleep(0.1)
+                        time.sleep(1)
                     if self.STOP_PROCESSING:
                         P.kill()
                         return
-                    os.remove(streamFile)
+                    self.PROCESSED.add(curr)
+                    os.remove("%s/%s" % (self.OUT_DIR, curr))
+                    if self.MOVE_DIR is not None:
+                        os.rename("%s/%smp4" % (self.OUT_DIR, curr[:-3]), "%s/%smp4" % (self.MOVE_DIR, curr[:-3]))
                 except:
                     pass
+            time.sleep(5)
 
     # Make directories for streams
     def MakeDirectories(self):
         # OUTDIR/map/date/team1_team2/type.flv
         if not os.path.exists(self.OUT_DIR):
             os.makedirs(self.OUT_DIR)
+        if self.MOVE_DIR is not None and os.path.exists(self.MOVE_DIR) == False:
+            os.makedirs(self.MOVE_DIR)
         for mapx in [self.CURRENT_MATCH[4]]:
             if not os.path.exists("%s/%s" % (self.OUT_DIR, mapx)):
                 os.mkdir("%s/%s" % (self.OUT_DIR, mapx))
+                if self.MOVE_DIR is not None:
+                    os.mkdir("%s/%s" % (self.MOVE_DIR, mapx))
             if not os.path.exists("%s/%s/%s" % (self.OUT_DIR, mapx, self.CURRENT_MATCH[5])):
                 os.mkdir("%s/%s/%s" % (self.OUT_DIR, mapx, self.CURRENT_MATCH[5]))
+                if self.MOVE_DIR is not None:
+                    os.mkdir("%s/%s/%s" % (self.MOVE_DIR, mapx, self.CURRENT_MATCH[5]))
             if not os.path.exists("%s/%s/%s/%s_%s" % (self.OUT_DIR, mapx, self.CURRENT_MATCH[5], self.CURRENT_MATCH[2], self.CURRENT_MATCH[3])):
                 os.mkdir("%s/%s/%s/%s_%s" % (self.OUT_DIR, mapx, self.CURRENT_MATCH[5], self.CURRENT_MATCH[2], self.CURRENT_MATCH[3]))
+                if self.MOVE_DIR is not None:
+                    os.mkdir("%s/%s/%s/%s_%s" % (self.MOVE_DIR, mapx, self.CURRENT_MATCH[5], self.CURRENT_MATCH[2], self.CURRENT_MATCH[3]))
 
     # Gets information for channels (POV, etc.)
     def GetChannelInfo(self):
